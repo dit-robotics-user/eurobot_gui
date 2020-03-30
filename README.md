@@ -1,4 +1,25 @@
-# eurobot_gui
+# Eurobot GUI
+
+## Install the package
+
+    cd ~/<Your Workspace>/src
+
+    git clone https://github.com/dit-robotics/eurobot_gui.git
+    
+    cd src
+    
+    chmod +x eurobot_gui.py
+
+## Run GUI
+
+- If you want to run GUI only:
+
+    ```
+    roscore
+    rosrun eurobot_gui eurobot_gui.py
+    ```
+
+- If you want to start with a launch file, then just add the node 'eurobot_gui'.
 
 ## Buttons
 
@@ -21,7 +42,7 @@
 
 - There's only one thing that you need to install: Optimal C font
 
-- Currently, the gui is for 800x600 touch display
+- Currently, the gui is for 800x480 touch display
 
 ## Credit
 
