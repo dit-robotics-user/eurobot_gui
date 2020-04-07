@@ -3,13 +3,35 @@
 import rospy
 import Tkinter as tk
 from Tkinter import *
+import tkMessageBox as mb
 import ttk
 from std_msgs.msg import String
 from std_msgs.msg import UInt32
+from std_msgs.msg import UInt16
 import time
 
-pub = rospy.Publisher('gui_command', UInt32, queue_size=10)
+# Publishers
+status_pub = rospy.Publisher('update_status', UInt32, queue_size=10)
+command_pub = rospy.Publisher('gui_command', UInt32, queue_size=10)
+strategy_pub = rospy.Publisher('strategy', UInt32, queue_size=10)
+# Callbacks
 
+
+    
+
+# Subscribers
+# unplug_sub = rospy.Subscriber('unplug', UInt32, unplug_callback)
+# tx1_sub = rospy.Subscriber('txST1', Float32, txST1_callback)
+# rx1_sub = rospy.Subscriber('rxST1', Float32, rxST1_callback)
+# tx2_sub = rospy.Subscriber('txST2', Float32, txST2_callback)
+# rx2_sub = rospy.Subscriber('rxST2', Float32, rxST2_callback)
+# cam_sub = rospy.Subscriber('cam', UInt32, cam_callback)
+# score_sub = rospy.Subscriber('score', UInt32, score_callback)
+
+
+
+# pv
+strategy_vars = ['1', '2', '3']
 default_font = 'OptimalC'
 
 def talker():
@@ -18,11 +40,15 @@ def talker():
 
 class Application(tk.Frame):
     def __init__(self, master):
+        
         tk.Frame.__init__(self, master)
         self.pack()
-
         self.start_time = 0
-
+        self.current_score = 0
+        self.current_script = 0
+        self.current_status = 87
+        score_sub = rospy.Subscriber('score', UInt32, self.score_callback)
+        status_sub = rospy.Subscriber('pubs_ststus', UInt32, self.status_callback)
         self.title = tk.Label(
             self,
             bg='#000000',
@@ -33,9 +59,34 @@ class Application(tk.Frame):
         )
         self.title.pack(side=TOP)
         
-        self.btn_HW = tk.Button(
+
+        self.menu = tk.Listbox(
             self,
-            text='Hit Wall',
+            font=(default_font, 10),
+            bg='#000000',
+            fg='#FFFFFF'
+        )
+        for item in strategy_vars:
+            self.menu.insert(END, item)
+
+        self.menu.pack(side=BOTTOM, pady=16)
+
+        self.btn_confirm = tk.Button(
+            self,
+            text="Confirm",
+            font=(default_font, 12),
+            height=2,
+            width=12,
+            bg='#DB7093',
+            activebackground='#FFC0CB',
+            fg='#FFFFFF',
+            command=self.push_confirm
+        )
+        self.btn_confirm.pack(side=BOTTOM, before=self.menu)
+
+        self.btn_RST = tk.Button(
+            self,
+            text='Reset',
             font=(default_font, 12),
             height=2,
             width=12,
@@ -44,20 +95,20 @@ class Application(tk.Frame):
             fg='#FFFFFF',
             command=self.hit_wall
         )
-        self.btn_HW.pack(side=LEFT, padx=10)
+        
 
-        self.btn_ST = tk.Button(
+        self.btn_PP = tk.Button(
             self,
-            text='Start',
+            text='Prepare',
             font=(default_font, 12),
             height=2,
             width=12,
             bg='#DB7093',
             activebackground='#FFC0CB',
             fg='#FFFFFF',
-            command = self.start
+            command = self.prepare
         )
-        self.btn_ST.pack(side=LEFT, padx=10)
+        
         
         self.var = tk.StringVar()
         self.var.set('Push button plz ==')
@@ -69,40 +120,98 @@ class Application(tk.Frame):
             font=(default_font, 10),
             textvariable=self.var
         )
-        self.message.pack(side=BOTTOM, before=self.btn_HW, pady=32)
+        
         
         self.timer = tk.Label(
             self,
             font=(default_font, 10),
-            text="game time: 0.00",
+            text="Game time: 0.00",
             bg='#000000',
             fg='#FFFFFF'
         )
-        self.timer.pack(side=BOTTOM, before=self.message)
+        
+
+        self.score_board = tk.Label(
+            self,
+            font=(default_font, 16),
+            text="Score: %d" % self.current_score,
+            bg='#000000',
+            fg='#FFFFFF'
+        )
         
         
+    def push_confirm(self):
+        if self.current_status == 0:
+            mb_ans = mb.askquestion('Message', 'Are you sure that the strategy is correct?')
+        else:
+            mb_ans = mb.showerror('Error', 'Current state code is not zero! It is %d' % self.current_status)
+        if mb_ans == 'yes':
+            self.menu.forget()
+            self.btn_confirm.forget()
+            for i in range(len(strategy_vars)):
+                if self.menu.select_includes(i):
+                    strategy_pub.publish(i+1)
+                    self.var.set('Reset completed\nCurrent script: %d' % (i+1))
+            # This is demo for Porf. Chen:
+            status_pub.publish(5)
+            self.btn_PP.pack(side=BOTTOM)
+            self.message.pack(side=BOTTOM, before=self.btn_PP, pady=32)
+            self.timer.pack(side=BOTTOM, before=self.message)
+
+            # This is the real one:
+            # status_pub.publish(1)
+            # self.btn_RST.pack(side=TOP)
+            # self.message.pack(side=BOTTOM, before=self.btn_RST, pady=32)
+            # self.timer.pack(side=BOTTOM, before=self.message)
+            # self.score_board.pack(side=BOTTOM, before=self.timer, pady=32)
+            
+
+            
+    def score_callback(self, data):
+        self.current_score = data.data
+    
+    def status_callback(self, data):
+        self.current_status = data.data
+
 
     def hit_wall(self):
-        pub.publish(1000)
-        self.var.set('Hit-wall positioning has started <3')
-
-
-    def start(self):
-        pub.publish(2000)
-        self.var.set('Go win! You\'re not here to lose!')
+        status_pub.publish(2)
+        self.btn_RST.pack_forget()
+        self.btn_PP.pack(side=TOP, padx=10)
+        # self.var.set('Hit-wall positioning has started <3')
+        rospy.sleep(2.0)
+        status_pub.publish(3)
+        
+        
+    def prepare(self):
+        command_pub.publish(2000)
+        # This is demo for Prof. Chen:
+        status_pub.publish(5)
+        # This is the real one:
+        # status_pub.publish(4)
+        self.var.set('Go win! We ain\'t here to lose!')
         self.start_time = time.time()
+        self.update_score()
         self.update_clock()
-
+        
 
     def update_clock(self):
         now = time.time()
-        self.timer.configure(text="game time: %.2f" % (now-self.start_time))
+        self.timer.configure(text="Game time: %.2f" % (now-self.start_time))
         self.master.after(10, self.update_clock)
+    
+
+    def update_score(self):
+        self.score_board.configure(text='Score: %d' % self.current_score)
+        self.master.after(1, self.update_score)
+    
+        
 # END OF CLASS
 
 if __name__ == '__main__':
     try:
         talker()
+        status_pub.publish(0)
         root = tk.Tk()
         root.geometry('800x480')
         root.configure(bg='#000000')
