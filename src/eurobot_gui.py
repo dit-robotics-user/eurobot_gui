@@ -47,8 +47,8 @@ class Application(tk.Frame):
         self.current_score = 0
         self.current_script = 0
         self.current_status = 87
-        score_sub = rospy.Subscriber('score', UInt32, self.score_callback)
-        status_sub = rospy.Subscriber('pubs_ststus', UInt32, self.status_callback)
+        score_sub = rospy.Subscriber('score', Int32, self.score_callback)
+        status_sub = rospy.Subscriber('pub_status', Int32, self.status_callback)
         self.title = tk.Label(
             self,
             bg='#000000',
@@ -157,7 +157,8 @@ class Application(tk.Frame):
             self.btn_PP.pack(side=BOTTOM)
             self.message.pack(side=BOTTOM, before=self.btn_PP, pady=32)
             self.timer.pack(side=BOTTOM, before=self.message)
-
+            while (self.current_status != 5):
+                status_pub.publish(5)
             # This is the real one:
             # status_pub.publish(1)
             # self.btn_RST.pack(side=TOP)
