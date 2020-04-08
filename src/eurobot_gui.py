@@ -7,11 +7,11 @@ import tkMessageBox as mb
 import ttk
 from std_msgs.msg import String
 from std_msgs.msg import UInt32
-from std_msgs.msg import UInt16
+from std_msgs.msg import Int32
 import time
 
 # Publishers
-status_pub = rospy.Publisher('update_status', UInt32, queue_size=10)
+status_pub = rospy.Publisher('update_status', Int32, queue_size=10)
 command_pub = rospy.Publisher('gui_command', UInt32, queue_size=10)
 strategy_pub = rospy.Publisher('strategy', UInt32, queue_size=10)
 # Callbacks
@@ -47,6 +47,7 @@ class Application(tk.Frame):
         self.current_score = 0
         self.current_script = 0
         self.current_status = 87
+        self.error_count = 0
         score_sub = rospy.Subscriber('score', Int32, self.score_callback)
         status_sub = rospy.Subscriber('pub_status', Int32, self.status_callback)
         self.title = tk.Label(
@@ -159,6 +160,13 @@ class Application(tk.Frame):
             self.timer.pack(side=BOTTOM, before=self.message)
             while (self.current_status != 5):
                 status_pub.publish(5)
+                self.error_count += 1
+                rospy.sleep(0.1)
+                if (self.error_count >= 20):
+                    self.error_count = 0
+                    mb.showerror('Error', 'Current state is not 5!')
+                    break
+                
             # This is the real one:
             # status_pub.publish(1)
             # self.btn_RST.pack(side=TOP)
