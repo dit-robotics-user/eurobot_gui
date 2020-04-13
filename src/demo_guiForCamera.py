@@ -36,7 +36,7 @@ strategy_vars = ['1', '2', '3']
 default_font = 'OptimalC'
 
 def talker():
-    rospy.init_node('eurobot_gui', anonymous=True)
+    rospy.init_node('camera_gui_demo', anonymous=True)
     rate = rospy.Rate(10)
 
 class Application(tk.Frame):
@@ -44,105 +44,109 @@ class Application(tk.Frame):
         
         tk.Frame.__init__(self, master)
         self.pack()
+        self.var = ['R','R','R','R','R']
+        for i in range(5):
+            self.var[i] = tk.StringVar()
         self.start_time = 0
         self.current_score = 0
         self.current_script = 0
         self.current_status = 87
         self.error_count = 0
-        score_sub = rospy.Subscriber('score', Int32, self.score_callback)
-        status_sub = rospy.Subscriber('pub_status', Int32, self.status_callback)
-        #camera_sub = rospy.Subscriber('CUP_NS', String, camera_callback)
+        self.cup = ['R','R','G','G','R']
+        self.Ns = "000000"
+        self.orientation = "North"
+        cup_sub = rospy.Subscriber('cup', String, self.cup_callback)
+        ns_sub = rospy.Subscriber('Cup_NS', String, self.Ns_callback)
         self.title = tk.Label(
             self,
-            bg='#000000',
-            fg='#FFFFFF',
-            text='DIT Robotics\nEurobot 2020',
-            height=3,
-            font=(default_font, 12)
+            bg='DarkMagenta',
+            fg='#F08080',
+            text="Final destination: %s" %self.orientation,
+            height=2,
+            font=(default_font, 30)
         )
         self.title.pack(side=TOP)
+        self.Orientation_Updata()
         
 
-        self.menu = tk.Listbox(
+        self.showCup = tk.Label(
             self,
-            font=(default_font, 10),
-            bg='#000000',
-            fg='#FFFFFF'
+            bg='DarkMagenta',
+            fg='#F08080',
+            text="%s" %self.cup,
+            # textvariable=self.var,
+            # text="Final destination: %s" %self.orientation,
+            height=4,
+            font=(default_font,30)
         )
-        for item in strategy_vars:
-            self.menu.insert(END, item)
+        self.showCup.pack(side = BOTTOM)
+        self.CupDetection_Update()
 
-        self.menu.pack(side=BOTTOM, pady=16)
+        # self.menu = tk.Listbox(
+        #     self,
+        #     font=(default_font, 10),
+        #     bg='#000000',
+        #     fg='#FFFFFF'
+        # )
+        # for item in strategy_vars:
+        #     self.menu.insert(END, item)
 
-        self.btn_confirm = tk.Button(
-            self,
-            text="Confirm",
-            font=(default_font, 12),
-            height=2,
-            width=12,
-            bg='#DB7093',
-            activebackground='#FFC0CB',
-            fg='#FFFFFF',
-            command=self.push_confirm
-        )
-        self.btn_confirm.pack(side=BOTTOM, before=self.menu)
+        # self.menu.pack(side=END, pady=16)
 
-        self.btn_RST = tk.Button(
-            self,
-            text='Reset',
-            font=(default_font, 12),
-            height=2,
-            width=12,
-            bg='#DB7093',
-            activebackground='#FFC0CB',
-            fg='#FFFFFF',
-            command=self.hit_wall
-        )
-        
+        # self.btn_confirm = tk.Button(
+        #     self,
+        #     text="Confirm",
+        #     font=(default_font, 12),
+        #     height=2,
+        #     width=12,
+        #     bg='#DB7093',
+        #     activebackground='#FFC0CB',
+        #     fg='#FFFFFF',
+        #     command=self.push_confirm
+        # )
+        #self.btn_confirm.pack(side=BOTTOM, before=self.menu)
 
-        self.btn_PP = tk.Button(
-            self,
-            text='Prepare',
-            font=(default_font, 12),
-            height=2,
-            width=12,
-            bg='#DB7093',
-            activebackground='#FFC0CB',
-            fg='#FFFFFF',
-            command = self.prepare
-        )
-        
-        
-        self.var = tk.StringVar()
-        self.var.set('Push button plz ==')
-
-        self.message = tk.Label(
-            self,
-            bg='#000000',
-            fg='#FFFFFF',
-            font=(default_font, 10),
-            textvariable=self.var
-        )
-        
-        
-        self.timer = tk.Label(
-            self,
-            font=(default_font, 10),
-            text="Game time: 0.00",
-            bg='#000000',
-            fg='#FFFFFF'
-        )
+        # self.btn_RST = tk.Button(
+        #     self,
+        #     text='Reset',
+        #     font=(default_font, 12),
+        #     height=2,
+        #     width=12,
+        #     bg='#DB7093',
+        #     activebackground='#FFC0CB',
+        #     fg='#FFFFFF',
+        #     command=self.hit_wall
+        # )
         
 
-        self.score_board = tk.Label(
-            self,
-            font=(default_font, 16),
-            text="Score: %d" % self.current_score,
-            bg='#000000',
-            fg='#FFFFFF'
-        )
+        # self.btn_PP = tk.Button(
+        #     self,
+        #     text='Prepare',
+        #     font=(default_font, 12),
+        #     height=2,
+        #     width=12,
+        #     bg='#DB7093',
+        #     activebackground='#FFC0CB',
+        #     fg='#FFFFFF',
+        #     command = self.prepare
+        # )
         
         
+        # self.var = tk.StringVar()
+        # self.var.set('Push button plz ==')
+
+        # self.message = tk.Label(
+        #     self,
+        #     bg='#000000',
+        #     fg='#FFFFFF',
+        #     font=(default_font, 10),
+        #     textvariable=self.var
+        # )
+        
+        
+
+
+
     def push_confirm(self):
         if self.current_status == 0:
             mb_ans = mb.askquestion('Message', 'Are you sure that the strategy is correct?')
@@ -157,9 +161,9 @@ class Application(tk.Frame):
                     self.var.set('Reset completed\nCurrent script: %d' % (i+1))
             # This is demo for Porf. Chen:
             status_pub.publish(5)
-            self.btn_PP.pack(side=BOTTOM)
-            self.message.pack(side=BOTTOM, before=self.btn_PP, pady=32)
-            self.timer.pack(side=BOTTOM, before=self.message)
+            # self.btn_PP.pack(side=BOTTOM)
+            # self.message.pack(side=BOTTOM, before=self.btn_PP, pady=32)
+            # self.timer.pack(side=BOTTOM, before=self.message)
             while (self.current_status != 5):
                 status_pub.publish(5)
                 self.error_count += 1
@@ -174,47 +178,67 @@ class Application(tk.Frame):
             # self.btn_RST.pack(side=TOP)
             # self.message.pack(side=BOTTOM, before=self.btn_RST, pady=32)
             # self.timer.pack(side=BOTTOM, before=self.message)
-            # self.score_board.pack(side=BOTTOM, before=self.timer, pady=32)
-            
+            # self.score_board.pack(side=BOTTOM, before=self.timer, pady=32)    
 
-            
-    def score_callback(self, data):
-        self.current_score = data.data
+    def Ns_callback(self,data):
+        self.Ns = data.data
+        # rospy.loginfo("%s" % self.Ns)
+        
+
+    def cup_callback(self,data):
+        self.cup = data.data
+        # rospy.loginfo(self.cup)    
+
+
+    def Orientation_Updata(self):
+        if (self.Ns[5] == "1"):
+            self.title.configure(text="Final Destination: North")
+            self.master.after(10, self.Orientation_Updata)
+
+        else : 
+            self.title.configure(text="Final Destination: South")
+            self.master.after(10, self.Orientation_Updata)
+
+
+    def CupDetection_Update(self):
+        # for i in range(5):
+            # self.var[i].set((self.cup[i]))    
+            # rospy.loginfo(self.var[i])
+        self.showCup.configure(text = self.cup)    
+        self.master.after(10, self.CupDetection_Update)
+
+
+
+    # def hit_wall(self):
+    #     status_pub.publish(2)
+    #     self.btn_RST.pack_forget()
+    #     self.btn_PP.pack(side=TOP, padx=10)
+    #     # self.var.set('Hit-wall positioning has started <3')
+    #     rospy.sleep(2.0)
+    #     status_pub.publish(3)
+        
+        
+    # def prepare(self):
+    #     command_pub.publish(2000)
+    #     # This is demo for Prof. Chen:
+    #     status_pub.publish(5)
+    #     # This is the real one:
+    #     # status_pub.publish(4)
+    #     self.var.set('Go win! We ain\'t here to lose!')
+    #     self.start_time = time.time()
+    #     self.update_score()
+    #     self.update_clock()
+        
+
+    # def update_clock(self):
+    #     now = time.time()
+    #     self.timer.configure(text="Game time: %.2f" % (now-self.start_time))
+    #     self.master.after(10, self.update_clock)
     
-    def status_callback(self, data):
-        self.current_status = data.data
 
-
-    def hit_wall(self):
-        status_pub.publish(2)
-        self.btn_RST.pack_forget()
-        self.btn_PP.pack(side=TOP, padx=10)
-        # self.var.set('Hit-wall positioning has started <3')
-        rospy.sleep(2.0)
-        status_pub.publish(3)
-        
-        
-    def prepare(self):
-        command_pub.publish(2000)
-        # This is demo for Prof. Chen:
-        status_pub.publish(5)
-        # This is the real one:
-        # status_pub.publish(4)
-        self.var.set('Go win! We ain\'t here to lose!')
-        self.start_time = time.time()
-        self.update_score()
-        self.update_clock()
-        
-
-    def update_clock(self):
-        now = time.time()
-        self.timer.configure(text="Game time: %.2f" % (now-self.start_time))
-        self.master.after(10, self.update_clock)
-    
-
-    def update_score(self):
-        self.score_board.configure(text='Score: %d' % self.current_score)
-        self.master.after(1, self.update_score)
+    # def update_score(self):
+    #     self.score_board.configure(text='Score: %d' % self.current_score)
+    #     self.master.after(1, self.update_score)
     
         
 # END OF CLASS
@@ -225,8 +249,7 @@ if __name__ == '__main__':
         status_pub.publish(0)
         root = tk.Tk()
         root.geometry('800x480')
-        root.configure(bg='#000000')
-        root.title('DIT Robotics Eurobot 2020')
+        root.configure(bg='aqua')
         app = Application(root)
         app.configure(bg='#000000')
         root.mainloop()
