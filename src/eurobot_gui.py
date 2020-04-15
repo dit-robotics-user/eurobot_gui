@@ -162,7 +162,7 @@ class Application(tk.Frame):
                 status_pub.publish(5)
                 self.error_count += 1
                 rospy.sleep(0.1)
-                if (self.error_count >= 20):
+                if (self.error_count >= 2000):
                     self.error_count = 0
                     mb.showerror('Error', 'Current state is not 5!')
                     break
