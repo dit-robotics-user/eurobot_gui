@@ -141,26 +141,19 @@ class Application(tk.Frame):
                     strategy_pub.publish(i+1)
                     self.var.set('Reset completed\nCurrent script: %d' % (i+1))
             # This is demo for Porf. Chen:
-            # status_pub.publish(5)
-            # self.btn_PP.pack(side=BOTTOM)
-            # self.message.pack(side=BOTTOM, before=self.btn_PP, pady=32)
-            # self.timer.pack(side=BOTTOM, before=self.message)
-            # while (self.current_status != 5):
-            #     status_pub.publish(5)
-            #     self.error_count += 1
-            #     rospy.sleep(0.1)
-            #     if (self.error_count >= 2000):
-            #         self.error_count = 0
-            #         mb.showerror('Error', 'Current state is not 5!')
-            #         break
+            status_pub.publish(5)
+            self.btn_PP.pack(side=BOTTOM)
+            self.message.pack(side=BOTTOM, before=self.btn_PP, pady=32)
+            self.timer.pack(side=BOTTOM, before=self.message)
+            self.error_detect(5)
                 
             # This is the real one:
-            status_pub.publish(1)
-            self.error_detect(1)
-            self.btn_RST.pack(side=TOP)
-            self.message.pack(side=BOTTOM, before=self.btn_RST, pady=32)
-            self.timer.pack(side=BOTTOM, before=self.message)
-            self.score_board.pack(side=BOTTOM, before=self.timer, pady=32)
+            # status_pub.publish(1)
+            # self.error_detect(1)
+            # self.btn_RST.pack(side=TOP)
+            # self.message.pack(side=BOTTOM, before=self.btn_RST, pady=32)
+            # self.timer.pack(side=BOTTOM, before=self.message)
+            # self.score_board.pack(side=BOTTOM, before=self.timer, pady=32)
             
 
             
