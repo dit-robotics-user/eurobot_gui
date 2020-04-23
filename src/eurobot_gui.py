@@ -7,6 +7,7 @@ import tkMessageBox as mb
 import ttk
 from std_msgs.msg import *
 import time
+from main_loop.msg import *
 
 # Publishers
 status_pub = rospy.Publisher('update_status', Int32, queue_size=10)
@@ -34,7 +35,7 @@ class Application(tk.Frame):
         # Subcribers
         score_sub = rospy.Subscriber('score', Int32, self.score_callback)
         status_sub = rospy.Subscriber('pub_status', Int32, self.status_callback)
-        time_sub = rospy.Subscriber('time', Float32, self.time_callback)
+        time_sub = rospy.Subscriber('agent_msg', agent, self.time_callback)
         # Widgets
         self.title = tk.Label(
             self,
@@ -42,14 +43,14 @@ class Application(tk.Frame):
             fg='#FFFFFF',
             text='DIT Robotics\nEurobot 2020',
             height=3,
-            font=(default_font, 12)
+            font=(default_font, 24)
         )
         self.title.pack(side=TOP)
         
 
         self.menu = tk.Listbox(
             self,
-            font=(default_font, 10),
+            font=(default_font, 20),
             bg='#000000',
             fg='#FFFFFF'
         )
@@ -61,9 +62,9 @@ class Application(tk.Frame):
         self.btn_confirm = tk.Button(
             self,
             text="Confirm",
-            font=(default_font, 12),
-            height=2,
-            width=12,
+            font=(default_font, 24),
+            height=4,
+            width=24,
             bg='#DB7093',
             activebackground='#FFC0CB',
             fg='#FFFFFF',
@@ -74,9 +75,9 @@ class Application(tk.Frame):
         self.btn_RST = tk.Button(
             self,
             text='Reset',
-            font=(default_font, 12),
-            height=2,
-            width=12,
+            font=(default_font, 24),
+            height=4,
+            width=24,
             bg='#DB7093',
             activebackground='#FFC0CB',
             fg='#FFFFFF',
@@ -87,9 +88,9 @@ class Application(tk.Frame):
         self.btn_PP = tk.Button(
             self,
             text='Prepare',
-            font=(default_font, 12),
-            height=2,
-            width=12,
+            font=(default_font, 24),
+            height=4,
+            width=24,
             bg='#DB7093',
             activebackground='#FFC0CB',
             fg='#FFFFFF',
@@ -104,14 +105,14 @@ class Application(tk.Frame):
             self,
             bg='#000000',
             fg='#FFFFFF',
-            font=(default_font, 10),
+            font=(default_font, 20),
             textvariable=self.var
         )
         
         
         self.timer = tk.Label(
             self,
-            font=(default_font, 10),
+            font=(default_font, 20),
             text="Game time: 0.00",
             bg='#000000',
             fg='#FFFFFF'
@@ -120,7 +121,7 @@ class Application(tk.Frame):
 
         self.score_board = tk.Label(
             self,
-            font=(default_font, 16),
+            font=(default_font, 32),
             text="Score: %d" % self.current_score,
             bg='#000000',
             fg='#FFFFFF'
@@ -170,7 +171,7 @@ class Application(tk.Frame):
         self.current_status = data.data
     
     def time_callback(self, data):
-        self.current_time = data.data
+        self.current_time = data.time
 
 
     def hit_wall(self):
