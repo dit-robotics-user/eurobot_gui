@@ -198,23 +198,31 @@ class Application(tk.Frame):
         
 
     def update_clock(self):
-        if (self.current_status == 4):
+        if (self.current_status == 4 or self.current_status == 5):
             self.timer.configure(text="Game time: %.2f" % self.current_time)
             self.master.after(10, self.update_clock)
     
 
     def update_score(self):
-        if (self.current_status == 4):
+        if (self.current_status == 4 or self.current_status == 5):
             self.score_board.configure(text='Score: %d' % self.current_score)
             self.master.after(100, self.update_score)
     
     def error_detect(self, state):
-        while (self.current_status != state):
-            status_pub.publish(state)
-            self.error_count += 1
-            if (self.error_count > 2000):
-                self.error_count = 0
-                mb.showerror('Error', 'Current state is not %d!\nPlease restart the launch file.' % state)
+        if (state == 4):
+            while (self.current_status != 4 and self.current_status != 5):
+                status_pub.publish(state)
+                self.error_count += 1
+                if (self.error_count > 2000):
+                    self.error_count = 0
+                    mb.showerror('Error', 'Current state is not 4 or 5!\nPlease restart the launch file.')
+        else:
+            while (self.current_status != state):
+                status_pub.publish(state)
+                self.error_count += 1
+                if (self.error_count > 2000):
+                    self.error_count = 0
+                    mb.showerror('Error', 'Current state is not %d!\nPlease restart the launch file.' % state)
     
         
 # END OF CLASS
