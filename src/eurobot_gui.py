@@ -224,7 +224,7 @@ class Application(tk.Frame):
                     self.error_count = 0
                     mb.showerror('Error', 'Current state is not %d!\nPlease restart the launch file.' % state)
         else:
-            break
+            return
     
         
 # END OF CLASS
