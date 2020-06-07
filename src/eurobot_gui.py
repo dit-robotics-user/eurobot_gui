@@ -11,7 +11,7 @@ from main_loop.msg import *
 
 # Publishers
 status_pub = rospy.Publisher('update_status', Int32, queue_size=10)
-strategy_pub = rospy.Publisher('strategy', UInt32, queue_size=10)
+strategy_pub = rospy.Publisher('strategy', Int32, queue_size=10)
 
 # pv
 strategy_vars = ['1', '2', '3']
